@@ -14,5 +14,10 @@ fs.readFile(filePathToLastestCarFile, {encoding : 'utf-8'}, function(err, data) 
 		var obj = JSON.parse(data);
 		var length = obj.length;
 
+		if (length > MAX_CARS_TO_SEND){
+			//we can send exactly MAX_CARS_TO_SEND
+		}
+
 	});
+
 
