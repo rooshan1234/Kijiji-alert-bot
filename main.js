@@ -53,10 +53,10 @@ kijiji.query (prefs, params, function (err, ads) {
 	fromKijijiDesc = fromKijijiDesc.replace(/\$/g, "");
 	fromKijijiDesc = fromKijijiDesc.replace(/\'/g, "");
 
-	fromKijijiPrice = fromKijijiPrice.replace(/ /g, "");
+	/*fromKijijiPrice = fromKijijiPrice.replace(/ /g, "");
 	fromKijijiPrice = fromKijijiPrice.replace(/\./g, "");
 	fromKijijiPrice = fromKijijiPrice.replace(/\,/g, "");
-	fromKijijiPrice = fromKijijiPrice.replace(/\$/g, "");
+	fromKijijiPrice = fromKijijiPrice.replace(/\$/g, "");*/
 
 	console.log("Kijiji Information: " + fromKijijiTitle + "desc: " + fromKijijiDesc + "price: " + fromKijijiPrice);
 
@@ -65,6 +65,7 @@ kijiji.query (prefs, params, function (err, ads) {
 		
 		var obj = JSON.parse(data);
 		var length = obj.length;
+
 
 		//make sure the file is not empty
 		if(length != 0){
@@ -87,42 +88,115 @@ kijiji.query (prefs, params, function (err, ads) {
 					var carBufferDataObj = JSON.parse(data);
 					var carBufferDataLength = carBufferDataObj.length;
 
-					var carBufferTitle = carBufferDataObj[0].title;
-					var carBufferDesc = carBufferDataObj[0].desc;
-					var carBufferPrice = carBufferDataObj[0].price;
+					if (carBufferDataLength != 0){
+						console.log("updated car buffer....")
 
-					for (var i = MAX_CAR_TO_SEARCH - 1; i >= 0 ; i--){
-						fromKijijiTitle = ads[i].title;
-						fromKijijiDesc = ads[i].innerAd.desc;
-						fromKijijiPrice = ads[i].innerAd.info.Price;
+						var carBufferTitle = carBufferDataObj[carBufferDataLength - 1].title;
+						var carBufferDesc = carBufferDataObj[carBufferDataLength - 1].desc;
+						var carBufferPrice = carBufferDataObj[carBufferDataLength - 1].price;
 
-						if (fromKijijiTitle == carBufferTitle && fromKijijiDesc == carBufferDesc && 
-							fromKijijiPrice == carBufferPrice){
-								beginAdding = true;
-								console.log("car found, will start adding cars after this!");
-								continue;	
+						for (var i = MAX_CAR_TO_SEARCH - 1; i >= 0 ; i--){
+							fromKijijiTitle = ads[i].title;
+							fromKijijiDesc = ads[i].innerAd.desc;
+							fromKijijiPrice = ads[i].innerAd.info.Price;
+
+							if (fromKijijiTitle == carBufferTitle && fromKijijiDesc == carBufferDesc && 
+								fromKijijiPrice == carBufferPrice){
+									beginAdding = true;
+									console.log("car found, will start adding cars after this!");
+									continue;	
+							}
+
+							if (beginAdding && ads[0].title != carBufferDataObj[carBufferDataLength-1].title 
+								&& ads[0].innerAd.desc!= carBufferDataObj[carBufferDataLength-1].desc 
+									&& ads[0].innerAd.info.Price != carBufferDataObj[carBufferDataLength-1].price){
+
+								//create new object and push it to the file
+								var temp = new Object();
+								temp['title'] = fromKijijiTitle;
+								temp['desc'] = fromKijijiDesc;
+								temp['price'] = fromKijijiPrice;
+
+								carBufferDataObj.push(temp);
+
+								fs.writeFile (carBufferFile, JSON.stringify(carBufferDataObj), function(err) {
+									if (err) throw err;
+								});
+							}
 						}
+					}else{
+						console.log("buffer empty, adding the latest car...")
+						
+						//we are just going to add the latest car if the buffer is empty
+						var temp = new Object();
 
-						if (beginAdding && ads[0].title != fileTitle && ads[0].innerAd.desc!= fileDesc && ads[0].innerAd.info.Price != filePrice){
+							temp['title'] = ads[0].title;
+							temp['desc'] = ads[0].innerAd.desc;
+							temp['price'] = ads[0].innerAd.info.Price;
 
-							//create new object and push it to the file
-							var temp = new Object();
-							temp['title'] = fromKijijiTitle;
-							temp['desc'] = fromKijijiDesc;
-							temp['price'] = fromKijijiPrice;
+							carBufferDataObj.push(temp);
 
-							obj.push(temp);
-
-							fs.writeFile (carBufferFile, JSON.stringify(obj), function(err) {
+							fs.writeFile (carBufferFile, JSON.stringify(carBufferDataObj), function(err) {
 								if (err) throw err;
 							});
-						}
 					}
 				});
+				if (beginAdding != true){
+				//the car was not found in the 20 parsed, lets just [update to the latest car] and clear 
+				//the buffer, we can catch it next time?
+					
+					console.log ("Car was not found!")
+					//clear out car buffer
+					fs.writeFile(carBufferFile, JSON.stringify([]), function (err){
+						if (err) throw err;
+					});
 
+					//add the latest car in
+					fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, data) {
+						
+						var carBufferDataObj = JSON.parse(data);
+						var temp = new Object();
+						temp['title'] = ads[0].title;
+						temp['desc'] = ads[0].innerAd.desc;
+						temp['price'] = ads[0].innerAd.info.Price;
 
+						fs.writeFile (carBufferFile, JSON.stringify(carBufferDataObj), function(err) {
+							if (err) throw err;
+						});
+					});
+					
+				}
+				//[update to the latest car already done here]
+				
+				//obj.put("title", ads[0].title);
+				//obj.put("desc", ads[0].innerAd.desc);
+				//obj.put("price", ads[0].innerAd.info.Price);
+				
+				obj[0].title = ads[0].title;
+				obj[0].desc = ads[0].innerAd.desc;
+				obj[0].price = ads[0].innerAd.info.Price;
+
+				//finally update the current latest car
+				fs.writeFile (currentLatestCarFile, JSON.stringify(obj), function(err) {
+					if (err) throw err;
+				});
+			}else{
+				console.log("car already at the latest....")
 			}
-		}
+		}else{
+			console.log("current latest car was empty...");
+			var temp = new Object();
 
+				temp['title'] = ads[0].title;
+				temp['desc'] = ads[0].innerAd.desc;
+				temp['price'] = ads[0].innerAd.info.Price;
+
+				obj.push(temp);
+
+				//finally update the current latest car
+				fs.writeFile (currentLatestCarFile, JSON.stringify(obj), function(err) {
+					if (err) throw err;
+				});
+		}
 	});
 });
