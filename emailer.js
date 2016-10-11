@@ -4,11 +4,11 @@ var path = require ("path");
 
 var MAX_CARS_TO_SEND = 4;
 
-var latestCarFile = "latestCarFile.json";
-var filePathToLastestCarFile = path.join(__dirname, latestCarFile);
+var carBuffer  = "carBuffer.json";
+var carBufferFile = path.join(__dirname, carBuffer);
 
 
-fs.readFile(filePathToLastestCarFile, {encoding : 'utf-8'}, function(err, data) {
+fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, data) {
 		if (err) throw err;
 		
 		var obj = JSON.parse(data);

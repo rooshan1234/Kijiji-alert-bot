@@ -128,6 +128,7 @@ kijiji.query (prefs, params, function (err, ads) {
 						console.log("buffer empty, adding the latest car...")
 						
 						//we are just going to add the latest car if the buffer is empty
+						beginAdding = true;
 						var temp = new Object();
 
 							temp['title'] = ads[0].title;
@@ -155,11 +156,14 @@ kijiji.query (prefs, params, function (err, ads) {
 					fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, data) {
 						
 						var carBufferDataObj = JSON.parse(data);
+
 						var temp = new Object();
 						temp['title'] = ads[0].title;
 						temp['desc'] = ads[0].innerAd.desc;
 						temp['price'] = ads[0].innerAd.info.Price;
 
+						carBufferDataObj.push(temp);
+					
 						fs.writeFile (carBufferFile, JSON.stringify(carBufferDataObj), function(err) {
 							if (err) throw err;
 						});
@@ -181,7 +185,7 @@ kijiji.query (prefs, params, function (err, ads) {
 					if (err) throw err;
 				});
 			}else{
-				console.log("car already at the latest....")
+				console.log("car already at the latest....");
 			}
 		}else{
 			console.log("current latest car was empty...");
