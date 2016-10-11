@@ -84,9 +84,11 @@ kijiji.query (prefs, params, function (err, ads) {
 				//lets update the current current car buffer
 				beginAdding = false;
 
-				fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, data) {
-					var carBufferDataObj = JSON.parse(data);
+				fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, bufferdata) {
+					var carBufferDataObj = JSON.parse(bufferdata);
 					var carBufferDataLength = carBufferDataObj.length;
+					
+					console.log("CAR BUFFER LENGTH IS: " + carBufferDataLength);
 
 					if (carBufferDataLength != 0){
 						console.log("updated car buffer....")
@@ -141,10 +143,10 @@ kijiji.query (prefs, params, function (err, ads) {
 								if (err) throw err;
 							});
 					}
-				});
-				if (beginAdding != true){
-				//the car was not found in the 20 parsed, lets just [update to the latest car] and clear 
-				//the buffer, we can catch it next time?
+
+					if (beginAdding != true){
+					//the car was not found in the 20 parsed, lets just [update to the latest car] and clear 
+					//the buffer, we can catch it next time?
 					
 					console.log ("Car was not found!")
 					//clear out car buffer
@@ -169,7 +171,9 @@ kijiji.query (prefs, params, function (err, ads) {
 						});
 					});
 					
-				}
+					}
+				});
+				
 				//[update to the latest car already done here]
 				
 				//obj.put("title", ads[0].title);
