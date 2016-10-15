@@ -24,7 +24,7 @@ var prefs = {
 };
 
 var params = {
-	"transmission" : 2,
+	"transmission" : 1,
 	"for-sale-by" : "ownr"
 };
 

@@ -14,9 +14,19 @@ fs.readFile(carBufferFile, {encoding : 'utf-8'}, function(err, data) {
 		var obj = JSON.parse(data);
 		var length = obj.length;
 
-		if (length > MAX_CARS_TO_SEND){
-			//we can send exactly MAX_CARS_TO_SEND
+		var carsToEmails = MAX_CARS_TO_SEND;
+		if (length < MAX_CARS_TO_SEND){
+			carsToEmails = length;
 		}
+
+		console.log ("We are going to send: " + carsToEmails + " cars\n");
+		obj.splice(0,carsToEmails);
+
+		console.log(obj);
+
+		fs.writeFile (carBufferFile, JSON.stringify(obj), function(err) {
+			if (err) throw err;
+		});
 
 	});
 
